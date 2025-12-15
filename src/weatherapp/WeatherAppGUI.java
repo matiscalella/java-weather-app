@@ -2,10 +2,16 @@ package weatherapp;
 
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.*;
+import org.json.simple.JSONObject;
+import weatherapp.api.WeatherAPIService;
 
 
 public class WeatherAppGUI extends JFrame {
+    
+    private JSONObject weatherData;
     public WeatherAppGUI() {
         super("JAVA Weather App"); // Title
         setDefaultCloseOperation(EXIT_ON_CLOSE); // Exit program on GUI closing
@@ -25,12 +31,7 @@ public class WeatherAppGUI extends JFrame {
         searchTextField.setFont(new Font("Fira Code", Font.PLAIN, 24));
         add(searchTextField);
         
-        // Search Button
-        JButton searchButton = new JButton(loadImage("/assets/search.png"));
-        searchButton.setBounds(375, 13, 47, 45);
-        searchButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        searchButton.setContentAreaFilled(false);
-        add(searchButton);
+        
 
         // Weather Image
         JLabel weatherConditionImage = new JLabel(loadImage("/assets/cloudy.png"));
@@ -72,6 +73,69 @@ public class WeatherAppGUI extends JFrame {
         windspeedText.setBounds(310, 500, 85, 55);
         windspeedText.setFont(new Font("JetBrains Mono", Font.PLAIN, 16));
         add(windspeedText);
+        
+        // Search Button
+        JButton searchButton = new JButton(loadImage("/assets/search.png"));
+        searchButton.setBounds(375, 13, 47, 45);
+        searchButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        searchButton.setContentAreaFilled(false);
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                
+                // Get location from user
+                String userInput = searchTextField.getText();
+                // Validate and remove whitespace
+                if (userInput.replaceAll("\\s", "").length() <= 0) {
+                    return;
+                }
+                // Retrieve weather data
+                weatherData = WeatherAPIService.getWeatherData(userInput);
+                if (weatherData == null) {
+                    JOptionPane.showMessageDialog(
+                        WeatherAppGUI.this,
+                        "Could not obtain climate for this location",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                // Update GUI
+                
+                // Update weather Image
+                String weatherCondition = (String) weatherData.get("weather_condition");
+                switch (weatherCondition) {
+                    case "Clear":
+                        weatherConditionImage.setIcon(loadImage("/assets/clear.png"));
+                        break;
+                    case "Cloudy":
+                        weatherConditionImage.setIcon(loadImage("/assets/cloudy.png"));
+                        break;
+                    case "Rain":
+                        weatherConditionImage.setIcon(loadImage("/assets/rain.png"));
+                        break;
+                    case "Snow":
+                        weatherConditionImage.setIcon(loadImage("/assets/snow.png"));
+                        break;
+                }
+                // Update temperature text
+                double temperature = (double) weatherData.get("temperature");
+                temperatureText.setText(temperature + " °C");
+                
+                // Update weather condition
+                weatherConditionDesc.setText(weatherCondition);
+                
+                // Update humidity text
+                long humidity = (long) weatherData.get("humidity");
+                humidityText.setText("<html><b>Humidity</b> " + humidity + "%</html>");
+                
+                // Update windspeed text
+                double windspeed = (double) weatherData.get("windspeed");
+                windspeedText.setText("<html><b>Windspeed</b> " + windspeed + " km/h</html>");
+                
+            }
+        });
+        add(searchButton);
     }
     
     private ImageIcon loadImage(String resourcePath) {
