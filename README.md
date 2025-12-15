@@ -10,7 +10,7 @@ This project was built as part of a personal Java portfolio, focusing on API int
 ## 📸 Screenshot
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="Weather App Screenshot" width="400">
+  <img src="src/assets/screenshot.png" alt="Weather App Screenshot" width="400">
 </p>
 
 ---
